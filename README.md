@@ -4,4 +4,7 @@ This template should help get you started developing with Vue 3 in Vite. The tem
 
 Dont forget to install Vue Official extension for vscode ( https://marketplace.visualstudio.com/items?itemName=Vue.volar )
 
+1. npm install
+2. npm run dev
+
 Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
