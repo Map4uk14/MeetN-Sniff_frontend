@@ -1,7 +1,9 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
+import GoogleMapsDemo from './components/GoogleMapsDemo.vue'
+import WeatherDemo from './components/WeatherDemo.vue'
 </script>
 
 <template>
-  <HelloWorld />
+  <WeatherDemo />
+  <GoogleMapsDemo />
 </template>
