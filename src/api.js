@@ -63,5 +63,45 @@ export const Auth = {
 
   getCurrentUser() {
     return apiRequest('/auth/me', { method: 'GET' });
+  },
+
+  updateProfile(profileData) {
+    return apiRequest('/users/me', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+  },
+
+  deleteAccount() {
+    return apiRequest('/users/me', { 
+      method: 'DELETE' 
+    });
+  }
+
+
+};
+
+  export const Parks = {
+  // Fetches the entire collection of active park locations
+  getAll() {
+    return apiRequest('/parks', { method: 'GET' });
+  },
+
+  // Calls to backend proxy to get live weather
+  getWeather(parkId) {
+    return apiRequest(`/parks/${parkId}/weather`, { method: 'GET' });
+  },
+
+  updatePark(parkId, updatedParkData) {
+    return apiRequest(`/parks/${parkId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updatedParkData),
+    });
+  },
+
+  deletePark(parkId) {
+    return apiRequest(`/parks/${parkId}`, {
+      method: 'DELETE',
+    });
   }
 };
