@@ -1,6 +1,8 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const mapRef = ref(null)
 
 function loadGoogleMapsScript(apiKey) {
@@ -10,7 +12,10 @@ function loadGoogleMapsScript(apiKey) {
       return
     }
     const script = document.createElement('script')
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`
+    // Added libraries=marker to load the new advanced marker element engine
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker`
+    script.async = true
+    script.defer = true
     script.onload = resolve
     document.head.appendChild(script)
   })
@@ -18,27 +23,44 @@ function loadGoogleMapsScript(apiKey) {
 
 onMounted(async () => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+  if (!apiKey) {
+    console.error('Missing VITE_GOOGLE_MAPS_API_KEY environment variable.')
+    return
+  }
+
   await loadGoogleMapsScript(apiKey)
 
-  // Basic request: center map on Vienna and drop a marker
   const vie = { lat: 48.210033, lng: 16.363449 }
 
+  // Modern configuration requires a mapId for AdvancedMarkerElement to work
   const map = new google.maps.Map(mapRef.value, {
     center: vie,
     zoom: 13,
+    mapId: 'DEMO_MAP_ID', 
   })
 
-  new google.maps.Marker({
+  // Using the updated AdvancedMarkerElement interface
+  new google.maps.marker.AdvancedMarkerElement({
     position: vie,
     map,
-    title: 'Vienna',
+    title: 'Vienna Central Node',
   })
 })
+
+// Utility clear function to let users scrub their local sessions safely
+function handleLogout() {
+  localStorage.removeItem('token')
+  router.push('/login')
+}
 </script>
 
 <template>
   <div class="map-wrapper">
-    <h2>Google Maps Demo</h2>
+    <div class="dashboard-header">
+      <h2>Google Maps Engine</h2>
+      <button class="btn secondary logout-btn" @click="handleLogout">Sign out</button>
+    </div>
+    
     <div ref="mapRef" class="map-container" />
   </div>
 </template>
@@ -49,9 +71,22 @@ onMounted(async () => {
   font-family: sans-serif;
 }
 
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
 .map-container {
   width: 100%;
   height: 500px;
   border-radius: 8px;
+  border: 1px solid var(--border, #ccc);
+}
+
+.logout-btn {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
 }
 </style>
