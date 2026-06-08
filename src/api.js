@@ -92,6 +92,10 @@ export const Auth = {
     return apiRequest(`/parks/${parkId}/weather`, { method: 'GET' });
   },
 
+  getOne(parkId) {
+    return apiRequest(`/parks/${parkId}`, { method: 'GET' });
+  },
+
   updatePark(parkId, updatedParkData) {
     return apiRequest(`/parks/${parkId}`, {
       method: 'PUT',
