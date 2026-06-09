@@ -1,11 +1,8 @@
-const API_BASE = 'http://localhost:3000/api'; 
-
-
-// Core network utility to handle global API requests //
+const API_BASE = 'http://localhost:3000/api';
 
 export async function apiRequest(endpoint, options = {}) {
   const token = localStorage.getItem('token');
-  
+
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
@@ -15,37 +12,24 @@ export async function apiRequest(endpoint, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const config = {
-    ...options,
-    headers,
-  };
+  const response = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
 
-  try {
-    const response = await fetch(`${API_BASE}${endpoint}`, config);
-    
-    // Handle unauthorized or expired tokens globally
-    if (response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login'; 
-      throw new Error('Session expired. Please log in again.');
-    }
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || `Request failed with status ${response.status}`);
-    }
-
-    return data;
-  } catch (error) {
-    console.error(`API Error [${endpoint}]:`, error.message);
-    throw error;
+  // Expired or missing token — redirect to login globally
+  if (response.status === 401) {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+    throw new Error('Session expired. Please log in again.');
   }
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || `Request failed with status ${response.status}`);
+  }
+
+  return data;
 }
 
-/**
- * Authentication endpoint wrappers
- */
 export const Auth = {
   login(email, password) {
     return apiRequest('/auth/login', {
@@ -53,7 +37,7 @@ export const Auth = {
       body: JSON.stringify({ email, password }),
     });
   },
-  
+
   register(userData) {
     return apiRequest('/auth/register', {
       method: 'POST',
@@ -73,27 +57,21 @@ export const Auth = {
   },
 
   deleteAccount() {
-    return apiRequest('/users/me', { 
-      method: 'DELETE' 
-    });
-  }
-
-
+    return apiRequest('/users/me', { method: 'DELETE' });
+  },
 };
 
-  export const Parks = {
-  // Fetches the entire collection of active park locations
+export const Parks = {
   getAll() {
     return apiRequest('/parks', { method: 'GET' });
   },
 
-  // Calls to backend proxy to get live weather
-  getWeather(parkId) {
-    return apiRequest(`/parks/${parkId}/weather`, { method: 'GET' });
-  },
-
   getOne(parkId) {
     return apiRequest(`/parks/${parkId}`, { method: 'GET' });
+  },
+
+  getWeather(parkId) {
+    return apiRequest(`/parks/${parkId}/weather`, { method: 'GET' });
   },
 
   updatePark(parkId, updatedParkData) {
@@ -104,8 +82,6 @@ export const Auth = {
   },
 
   deletePark(parkId) {
-    return apiRequest(`/parks/${parkId}`, {
-      method: 'DELETE',
-    });
-  }
+    return apiRequest(`/parks/${parkId}`, { method: 'DELETE' });
+  },
 };
