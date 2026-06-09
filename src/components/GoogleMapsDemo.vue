@@ -2,6 +2,12 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+const props = defineProps({
+  parks: { type: Array, default: () => [] },
+})
+
+const emit = defineEmits(['park-selected'])
+
 const router = useRouter()
 const mapRef = ref(null)
 
@@ -30,21 +36,28 @@ onMounted(async () => {
 
   await loadGoogleMapsScript(apiKey)
 
-  const vie = { lat: 48.210033, lng: 16.363449 }
+  // Centre on first park if available, otherwise default to Vienna
+  const defaultCenter = props.parks.length > 0
+    ? { lat: props.parks[0].location.coordinates[1], lng: props.parks[0].location.coordinates[0] }
+    : { lat: 48.210033, lng: 16.363449 }
 
   // Modern configuration requires a mapId for AdvancedMarkerElement to work
   const map = new google.maps.Map(mapRef.value, {
-    center: vie,
+    center: defaultCenter,
     zoom: 13,
-    mapId: 'DEMO_MAP_ID', 
+    mapId: 'DEMO_MAP_ID',
   })
 
-  // Using the updated AdvancedMarkerElement interface
-  new google.maps.marker.AdvancedMarkerElement({
-    position: vie,
-    map,
-    title: 'Vienna Central Node',
-  })
+  // Place a marker for every park; GeoJSON stores [longitude, latitude]
+  for (const park of props.parks) {
+    const [lng, lat] = park.location.coordinates
+    const marker = new google.maps.marker.AdvancedMarkerElement({
+      position: { lat, lng },
+      map,
+      title: park.name,
+    })
+    marker.addListener('click', () => emit('park-selected', park.id))
+  }
 })
 
 // Utility clear function to let users scrub their local sessions safely

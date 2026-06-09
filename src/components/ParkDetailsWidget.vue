@@ -43,7 +43,7 @@ watch(() => props.parkId, async (newId) => {
       <p class="description">{{ parkData.description }}</p>
 
       <div v-if="weatherData" class="weather-strip">
-        <p> <strong>Live Climate:</strong> {{ Math.round(weatherData.temperature) }}°C — {{ weatherData.condition }}</p>
+        <p> <strong>Live Climate:</strong> {{ Math.round(weatherData.temperature) }}°C — {{ weatherData.description }}</p>
       </div>
 
       <div class="tags">
