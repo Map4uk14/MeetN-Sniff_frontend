@@ -47,10 +47,10 @@ export async function apiRequest(endpoint, options = {}) {
  * Authentication endpoint wrappers
  */
 export const Auth = {
-  login(username, password) {
+  login(email, password) {
     return apiRequest('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ email, password }),
     });
   },
   
