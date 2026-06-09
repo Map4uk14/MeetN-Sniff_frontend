@@ -1,8 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Parks } from '../api'
-import GoogleMapsDemo from '../components/GoogleMapsDemo.vue'
-import ParkDetailsWidget from '../components/ParkDetailsWidget.vue'
+import ParkMap from '../components/ParkMap.vue'
+import ParkDetails from '../components/ParkDetails.vue'
 
 const parks = ref([])
 const selectedParkId = ref(null)
@@ -27,7 +27,7 @@ onMounted(async () => {
 
     <!-- Map column -->
     <div class="map-col">
-      <GoogleMapsDemo :parks="parks" @park-selected="selectedParkId = $event" />
+      <ParkMap :parks="parks" @park-selected="selectedParkId = $event" />
     </div>
 
     <!-- Sidebar column -->
@@ -50,7 +50,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <ParkDetailsWidget v-if="selectedParkId" :parkId="selectedParkId" />
+      <ParkDetails v-if="selectedParkId" :parkId="selectedParkId" />
 
     </div>
   </div>
@@ -59,7 +59,8 @@ onMounted(async () => {
 <style scoped>
 .home-layout {
   display: flex;
-  height: 100vh;
+  /* Subtract the NavBar height so the layout doesn't overflow the viewport */
+  height: calc(100vh - 52px);
   overflow: hidden;
   text-align: left;
 }
@@ -71,7 +72,7 @@ onMounted(async () => {
 
 /* Override the fixed 500px height so the map fills the full column */
 .map-col :deep(.map-container) {
-  height: 100vh;
+  height: calc(100vh - 52px);
 }
 
 .sidebar-col {
