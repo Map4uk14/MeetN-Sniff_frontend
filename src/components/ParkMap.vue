@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, shallowRef, watch } from 'vue'
 
 const props = defineProps({
   parks: { type: Array, default: () => [] },
@@ -8,7 +8,7 @@ const props = defineProps({
 const emit = defineEmits(['park-selected'])
 
 const mapRef = ref(null)
-const mapInstance = ref(null)
+const mapInstance = shallowRef(null)
 
 function loadGoogleMapsScript(apiKey) {
   return new Promise((resolve) => {
