@@ -77,6 +77,10 @@ export const Parks = {
     return apiRequest(`/parks/${parkId}/weather`, { method: 'GET' });
   },
 
+  getReviews(parkId) {
+    return apiRequest(`/parks/${parkId}/reviews`, { method: 'GET' });
+  },
+
   updatePark(parkId, updatedParkData) {
     return apiRequest(`/parks/${parkId}`, {
       method: 'PUT',

@@ -25,17 +25,10 @@ onMounted(async () => {
 <template>
   <div class="home-layout">
 
-    <!-- Map column -->
-    <div class="map-col">
-      <ParkMap :parks="parks" @park-selected="selectedParkId = $event" />
-    </div>
-
-    <!-- Sidebar column -->
-    <div class="sidebar-col">
-
-      <div v-if="loading" class="sidebar-state">Loading parks…</div>
-      <div v-else-if="error" class="sidebar-state error">{{ error }}</div>
-
+    <!-- Parks list column -->
+    <div class="parks-col">
+      <div v-if="loading" class="col-state">Loading parks…</div>
+      <div v-else-if="error" class="col-state error">{{ error }}</div>
       <div v-else class="park-list">
         <div
           v-for="park in parks"
@@ -49,24 +42,40 @@ onMounted(async () => {
           <span class="park-rating">★ {{ park.ratingSummary?.averageRating?.toFixed(1) ?? '—' }}</span>
         </div>
       </div>
-
-      <ParkDetails v-if="selectedParkId" :parkId="selectedParkId" />
-
     </div>
+
+    <!-- Map column -->
+    <div class="map-col">
+      <ParkMap :parks="parks" @park-selected="selectedParkId = $event" />
+    </div>
+
+    <!-- Details column -->
+    <div class="details-col">
+      <ParkDetails v-if="selectedParkId" :parkId="selectedParkId" />
+      <div v-else class="col-state muted">Select a park to see details</div>
+    </div>
+
   </div>
 </template>
 
 <style scoped>
 .home-layout {
   display: flex;
-  /* Subtract the NavBar height so the layout doesn't overflow the viewport */
   height: calc(100vh - 52px);
   overflow: hidden;
   text-align: left;
 }
 
+.parks-col {
+  flex: 0 0 22%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+}
+
 .map-col {
-  flex: 0 0 60%;
+  flex: 1;
   overflow: hidden;
 }
 
@@ -75,23 +84,20 @@ onMounted(async () => {
   height: calc(100vh - 52px);
 }
 
-.sidebar-col {
-  flex: 0 0 40%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+.details-col {
+  flex: 0 0 28%;
+  overflow-y: auto;
   border-left: 1px solid var(--border);
 }
 
-.sidebar-state {
+.col-state {
   padding: 1.5rem;
   font-size: .875rem;
   color: var(--text);
 }
 
-.sidebar-state.error {
-  color: #ff6b6b;
-}
+.col-state.error { color: #ff6b6b; }
+.col-state.muted { font-style: italic; }
 
 .park-list {
   flex: 1;
