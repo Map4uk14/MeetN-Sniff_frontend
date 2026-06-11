@@ -26,18 +26,15 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to) => {
   const isAuthenticated = !!localStorage.getItem('token')
 
   if (to.meta.requiresAuth && !isAuthenticated) {
-    // If the route requires auth and user is logged out force them to the login view
-    next('/login')
-  } else if ((to.path === '/login' || to.path === '/register') && isAuthenticated) {
-    // If the user is already logged in don't let them go back to auth pages
-    next('/')
-  } else {
-    // Otherwise carry on
-    next()
+    return '/login'
+  }
+
+  if ((to.path === '/login' || to.path === '/register') && isAuthenticated) {
+    return '/'
   }
 })
 

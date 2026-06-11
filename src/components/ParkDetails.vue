@@ -16,18 +16,22 @@ watch(() => props.parkId, async (newId) => {
   parkData.value = null
   weatherData.value = null
 
-  try {
-    const [details, weather] = await Promise.all([
-      Parks.getOne(newId),
-      Parks.getWeather(newId)
-    ])
-    parkData.value = details.park
-    weatherData.value = weather.weather
-  } catch (err) {
-    console.error('Failed to load park details:', err)
-  } finally {
-    loading.value = false
+  const [detailsResult, weatherResult] = await Promise.allSettled([
+    Parks.getOne(newId),
+    Parks.getWeather(newId)
+  ])
+
+  if (detailsResult.status === 'fulfilled') {
+    parkData.value = detailsResult.value.park
+  } else {
+    console.error('Failed to load park details:', detailsResult.reason)
   }
+
+  if (weatherResult.status === 'fulfilled') {
+    weatherData.value = weatherResult.value.weather
+  }
+
+  loading.value = false
 }, { immediate: true })
 </script>
 
