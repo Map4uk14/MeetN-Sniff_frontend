@@ -1,8 +1,10 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useTheme } from '../composables/useTheme'
 
 const router = useRouter()
+const { isDark, toggle } = useTheme()
 
 const user = computed(() => {
   const raw = localStorage.getItem('user')
@@ -20,6 +22,9 @@ function logout() {
   <nav class="navbar">
     <span class="brand">MeetN'Sniff</span>
     <div class="nav-right">
+      <button class="theme-btn" @click="toggle" :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
+        {{ isDark ? 'Light' : 'Dark' }}
+      </button>
       <span v-if="user" class="username">{{ user.displayName || user.username }}</span>
       <button class="logout-btn" @click="logout">Sign out</button>
     </div>
@@ -54,6 +59,22 @@ function logout() {
 .username {
   font-size: 0.875rem;
   color: var(--text);
+}
+
+.theme-btn {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.theme-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .logout-btn {
