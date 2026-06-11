@@ -60,7 +60,7 @@ watch([mapInstance, () => props.parks], ([map, parks]) => {
       map,
       title: park.name,
     })
-    marker.addListener('click', () => emit('park-selected', park.id))
+    marker.addListener('gmp-click', () => emit('park-selected', park.id))
   }
 })
 </script>
