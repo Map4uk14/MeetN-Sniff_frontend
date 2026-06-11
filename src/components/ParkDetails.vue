@@ -21,8 +21,8 @@ watch(() => props.parkId, async (newId) => {
       Parks.getOne(newId),
       Parks.getWeather(newId)
     ])
-    parkData.value = details.data
-    weatherData.value = weather.data
+    parkData.value = details.park
+    weatherData.value = weather.weather
   } catch (err) {
     console.error('Failed to load park details:', err)
   } finally {
