@@ -1,5 +1,6 @@
 const API_BASE = 'http://localhost:3000/api';
 
+// Centralized API request function with token handling and error management
 export async function apiRequest(endpoint, options = {}) {
   const token = localStorage.getItem('token');
 
@@ -30,6 +31,7 @@ export async function apiRequest(endpoint, options = {}) {
   return data;
 }
 
+//Auth requests /auth/...
 export const Auth = {
   login(email, password) {
     return apiRequest('/auth/login', {
@@ -61,6 +63,7 @@ export const Auth = {
   },
 };
 
+//Park requests /parks/...
 export const Parks = {
   getAll() {
     return apiRequest('/parks', { method: 'GET' });
