@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, shallowRef, watch } from 'vue'
 
 const props = defineProps({
   parks: { type: Array, default: () => [] },
@@ -8,6 +8,7 @@ const props = defineProps({
 const emit = defineEmits(['park-selected'])
 
 const mapRef = ref(null)
+const mapInstance = shallowRef(null)
 
 function loadGoogleMapsScript(apiKey) {
   return new Promise((resolve) => {
@@ -33,18 +34,25 @@ onMounted(async () => {
 
   await loadGoogleMapsScript(apiKey)
 
-  const defaultCenter = props.parks.length > 0
-    ? { lat: props.parks[0].location.coordinates[1], lng: props.parks[0].location.coordinates[0] }
-    : { lat: 48.210033, lng: 16.363449 }
-
   // mapId is required for AdvancedMarkerElement to work
-  const map = new google.maps.Map(mapRef.value, {
-    center: defaultCenter,
+  mapInstance.value = new google.maps.Map(mapRef.value, {
+    center: { lat: 48.210033, lng: 16.363449 },
     zoom: 13,
     mapId: 'DEMO_MAP_ID',
   })
+})
 
-  for (const park of props.parks) {
+// Parks data and map initialization are independent async operations —
+// either can finish first. Watch both and place markers once both are ready.
+watch([mapInstance, () => props.parks], ([map, parks]) => {
+  if (!map || parks.length === 0) return
+
+  map.setCenter({
+    lat: parks[0].location.coordinates[1],
+    lng: parks[0].location.coordinates[0],
+  })
+
+  for (const park of parks) {
     // GeoJSON stores coordinates as [longitude, latitude] — swap for Google Maps
     const [lng, lat] = park.location.coordinates
     const marker = new google.maps.marker.AdvancedMarkerElement({
@@ -52,7 +60,7 @@ onMounted(async () => {
       map,
       title: park.name,
     })
-    marker.addListener('click', () => emit('park-selected', park.id))
+    marker.addListener('gmp-click', () => emit('park-selected', park.id))
   }
 })
 </script>
