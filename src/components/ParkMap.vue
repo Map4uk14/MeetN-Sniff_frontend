@@ -63,6 +63,16 @@ watch([mapInstance, () => props.parks], ([map, parks]) => {
     marker.addListener('gmp-click', () => emit('park-selected', park.id))
   }
 })
+
+// Pan (and zoom in) the map to a given park's location
+function focusPark(park) {
+  if (!mapInstance.value) return
+  const [lng, lat] = park.location.coordinates
+  mapInstance.value.panTo({ lat, lng })
+  mapInstance.value.setZoom(15)
+}
+
+defineExpose({ focusPark })
 </script>
 
 <template>

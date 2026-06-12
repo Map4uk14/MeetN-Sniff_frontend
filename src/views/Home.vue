@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { Parks } from '../api'
 import ParkMap from '../components/ParkMap.vue'
 import ParkDetails from '../components/ParkDetails.vue'
@@ -8,18 +8,46 @@ const parks = ref([])
 const selectedParkId = ref(null)
 const loading = ref(false)
 const error = ref(null)
+const selectedTags = ref([])
+const allTags = ref([])
+const parkMapRef = ref(null)
 
 onMounted(async () => {
   loading.value = true
   try {
     const data = await Parks.getAll()
     parks.value = data.data
+    // Derive the full set of unique tags across all parks for the filter chips
+    allTags.value = [...new Set(parks.value.flatMap(p => p.tags ?? []))]
   } catch (err) {
     error.value = err.message
   } finally {
     loading.value = false
   }
 })
+
+const filteredParks = computed(() =>
+  parks.value.filter(park =>
+    selectedTags.value.every(tag => (park.tags ?? []).includes(tag))
+  )
+)
+
+function toggleTag(tag) {
+  const idx = selectedTags.value.indexOf(tag)
+  if (idx === -1) selectedTags.value.push(tag)
+  else selectedTags.value.splice(idx, 1)
+}
+
+function selectPark(park) {
+  selectedParkId.value = park.id
+  parkMapRef.value?.focusPark(park)
+}
+
+function onParkSelected(parkId) {
+  selectedParkId.value = parkId
+  const park = parks.value.find(p => p.id === parkId)
+  if (park) parkMapRef.value?.focusPark(park)
+}
 </script>
 
 <template>
@@ -27,15 +55,27 @@ onMounted(async () => {
 
     <!-- Parks list column -->
     <div class="parks-col">
+      <div v-if="!loading && !error" class="tag-filter">
+        <span
+          v-for="tag in allTags"
+          :key="tag"
+          class="tag-chip"
+          :class="{ active: selectedTags.includes(tag) }"
+          @click="toggleTag(tag)"
+        >
+          {{ tag }}
+        </span>
+      </div>
+
       <div v-if="loading" class="col-state">Loading parks…</div>
       <div v-else-if="error" class="col-state error">{{ error }}</div>
       <div v-else class="park-list">
         <div
-          v-for="park in parks"
+          v-for="park in filteredParks"
           :key="park.id"
           class="park-list-item"
           :class="{ active: park.id === selectedParkId }"
-          @click="selectedParkId = park.id"
+          @click="selectPark(park)"
         >
           <span class="park-name">{{ park.name }}</span>
           <span class="park-city">{{ park.address?.city }}</span>
@@ -46,7 +86,7 @@ onMounted(async () => {
 
     <!-- Map column -->
     <div class="map-col">
-      <ParkMap :parks="parks" @park-selected="selectedParkId = $event" />
+      <ParkMap ref="parkMapRef" :parks="parks" @park-selected="onParkSelected" />
     </div>
 
     <!-- Details column -->
@@ -141,5 +181,28 @@ onMounted(async () => {
   font-size: 0.8rem;
   color: var(--accent);
   margin-top: 2px;
+}
+
+.tag-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tag-chip {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  background: var(--code-bg);
+  transition: border-color .15s, background .15s;
+}
+
+.tag-chip.active {
+  border-color: var(--accent);
+  background: var(--accent-bg);
 }
 </style>
