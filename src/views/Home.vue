@@ -205,6 +205,7 @@ function onParkSelected(parkId) {
   border-color: var(--accent);
   background: var(--accent-bg);
 }
+<<<<<<< HEAD
 
 /* ── Mobile layout ──────────────────────────── */
 
