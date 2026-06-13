@@ -16,6 +16,35 @@ const currentUser = computed(() => {
   return raw ? JSON.parse(raw) : null
 })
 
+const isCreator = computed(() =>
+  parkData.value?.createdBy?.id === currentUser.value?.id
+)
+
+// Park edit state
+const editMode = ref(false)
+const editForm = ref({ name: '', description: '' })
+const editError = ref(null)
+const editLoading = ref(false)
+
+function startEdit() {
+  editForm.value = { name: parkData.value.name, description: parkData.value.description }
+  editMode.value = true
+}
+
+async function saveEdit() {
+  editError.value = null
+  editLoading.value = true
+  try {
+    const result = await Parks.updatePark(props.parkId, editForm.value)
+    parkData.value = result.park
+    editMode.value = false
+  } catch (err) {
+    editError.value = err.message
+  } finally {
+    editLoading.value = false
+  }
+}
+
 //Checking if the current user has already reviewed the park
 const hasReviewed = computed(() =>
   reviews.value.some(r => r.user?.id === currentUser.value?.id) 
@@ -90,8 +119,32 @@ function stars(rating) {
     <div v-if="loading" class="loading-text">Loading park details…</div>
 
     <div v-else-if="parkData">
-      <h3>{{ parkData.name }}</h3>
-      <p class="description">{{ parkData.description }}</p>
+
+      <!-- View mode -->
+      <div v-if="!editMode" class="park-header">
+        <h3>{{ parkData.name }}</h3>
+        <button v-if="isCreator" class="edit-park-btn" @click="startEdit">Edit</button>
+      </div>
+      <p v-if="!editMode" class="description">{{ parkData.description }}</p>
+
+      <!-- Inline edit form (creator only/admin) -->
+      <div v-if="editMode" class="park-edit-form">
+        <div v-if="editError" class="form-error">{{ editError }}</div>
+        <div class="form-field">
+          <label>Park name</label>
+          <input v-model="editForm.name" type="text" />
+        </div>
+        <div class="form-field">
+          <label>Description</label>
+          <textarea v-model="editForm.description" rows="3" />
+        </div>
+        <div class="edit-actions">
+          <button class="submit-review-btn" :disabled="editLoading" @click="saveEdit">
+            {{ editLoading ? 'Saving…' : 'Save' }}
+          </button>
+          <button class="cancel-btn" @click="editMode = false">Cancel</button>
+        </div>
+      </div>
 
       <div v-if="weatherData" class="weather-strip">
         <strong>Weather:</strong> {{ Math.round(weatherData.temperature) }}°C — {{ weatherData.description }}
@@ -196,6 +249,59 @@ function stars(rating) {
 .loading-text {
   color: var(--text);
   font-style: italic;
+}
+
+/* ── Park edit ──────────────────────────────── */
+
+.park-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.edit-park-btn {
+  padding: 0.25rem 0.65rem;
+  font-size: 0.78rem;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.edit-park-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.park-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cancel-btn {
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.cancel-btn:hover {
+  border-color: var(--accent);
 }
 
 /* ── Reviews ────────────────────────────────── */
