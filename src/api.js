@@ -113,6 +113,10 @@ export const User = {
     return apiRequest('/users/me/favorites', { method: 'GET' });
   },
 
+  addFavorite(parkId) {
+    return apiRequest(`/users/me/favorites/${parkId}`, { method: 'POST' });
+  },
+
   removeFavorite(parkId) {
     return apiRequest(`/users/me/favorites/${parkId}`, { method: 'DELETE' });
   },
@@ -124,3 +128,4 @@ export const Reviews = {
     return apiRequest(`/reviews/${reviewId}`, { method: 'DELETE' });
   },
 };
+

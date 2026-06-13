@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Parks, Reviews } from '../api'
+import { Parks, Reviews, User } from '../api'
 
 const props = defineProps({
   parkId: { type: String, required: true }
@@ -10,6 +10,7 @@ const parkData = ref(null)
 const weatherData = ref(null)
 const reviews = ref([])
 const loading = ref(false)
+const favorites = ref([])
 
 const currentUser = computed(() => {
   const raw = localStorage.getItem('user')
@@ -18,6 +19,10 @@ const currentUser = computed(() => {
 
 const isCreator = computed(() =>
   parkData.value?.createdBy?.id === currentUser.value?.id
+)
+
+const isFavorited = computed(() =>
+  favorites.value.some(f => f.id === props.parkId)
 )
 
 // Park edit state
@@ -79,6 +84,16 @@ async function deleteReview(reviewId) {
   }
 }
 
+async function toggleFavorite() {
+  if (isFavorited.value) {
+    await User.removeFavorite(props.parkId)
+    favorites.value = [...favorites.value.filter(f => f.id !== props.parkId)]
+  } else {
+    const res = await User.addFavorite(props.parkId)
+    favorites.value = [...favorites.value, res.park]
+  }
+}
+
 watch(() => props.parkId, async (newId) => {
   if (!newId) return
   loading.value = true
@@ -86,11 +101,16 @@ watch(() => props.parkId, async (newId) => {
   weatherData.value = null
   reviews.value = []
 
-  const [detailsResult, weatherResult, reviewsResult] = await Promise.allSettled([
+  const requests = [
     Parks.getOne(newId),
     Parks.getWeather(newId),
-    Parks.getReviews(newId)
-  ])
+    Parks.getReviews(newId),
+  ]
+
+  // Load favorites alongside park details if user is logged in
+  if (currentUser.value) requests.push(User.getFavorites())
+
+  const [detailsResult, weatherResult, reviewsResult, favoritesResult] = await Promise.allSettled(requests)
 
   if (detailsResult.status === 'fulfilled') {
     parkData.value = detailsResult.value.park
@@ -104,6 +124,10 @@ watch(() => props.parkId, async (newId) => {
 
   if (reviewsResult.status === 'fulfilled') {
     reviews.value = reviewsResult.value.data
+  }
+
+  if (favoritesResult?.status === 'fulfilled') {
+    favorites.value = favoritesResult.value.data
   }
 
   loading.value = false
@@ -123,7 +147,17 @@ function stars(rating) {
       <!-- View mode -->
       <div v-if="!editMode" class="park-header">
         <h3>{{ parkData.name }}</h3>
-        <button v-if="isCreator" class="edit-park-btn" @click="startEdit">Edit</button>
+        <div class="park-header-actions">
+          <button
+            v-if="currentUser"
+            class="favorite-btn"
+            :class="{ favorited: isFavorited }"
+            @click="toggleFavorite"
+          >
+            {{ isFavorited ? '♥ Saved' : '♡ Save' }}
+          </button>
+          <button v-if="isCreator" class="edit-park-btn" @click="startEdit">Edit</button>
+        </div>
       </div>
       <p v-if="!editMode" class="description">{{ parkData.description }}</p>
 
@@ -260,6 +294,13 @@ function stars(rating) {
   gap: 0.5rem;
 }
 
+.park-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
 .edit-park-btn {
   padding: 0.25rem 0.65rem;
   font-size: 0.78rem;
@@ -268,12 +309,28 @@ function stars(rating) {
   background: transparent;
   color: var(--text);
   cursor: pointer;
-  flex-shrink: 0;
   transition: border-color 0.15s, color 0.15s;
 }
 
 .edit-park-btn:hover {
   border-color: var(--accent);
+  color: var(--accent);
+}
+
+.favorite-btn {
+  padding: 0.25rem 0.65rem;
+  font-size: 0.78rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--code-bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.favorite-btn.favorited {
+  border-color: var(--accent);
+  background: var(--accent-bg);
   color: var(--accent);
 }
 
