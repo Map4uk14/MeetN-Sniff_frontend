@@ -20,12 +20,13 @@ function logout() {
 
 <template>
   <nav class="navbar">
-    <span class="brand">MeetN'Sniff</span>
+    <RouterLink to="/" class="brand">MeetN'Sniff</RouterLink>
     <div class="nav-right">
       <button class="theme-btn" @click="toggle" :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
         {{ isDark ? 'Light' : 'Dark' }}
       </button>
       <span v-if="user" class="username">{{ user.displayName || user.username }}</span>
+      <RouterLink to="/profile" class="profile-btn">Profile</RouterLink>
       <button class="logout-btn" @click="logout">Sign out</button>
     </div>
   </nav>
@@ -48,6 +49,7 @@ function logout() {
   font-size: 1.05rem;
   color: var(--accent);
   letter-spacing: -0.3px;
+  text-decoration: none;
 }
 
 .nav-right {
@@ -73,6 +75,23 @@ function logout() {
 }
 
 .theme-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.profile-btn {
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.profile-btn:hover {
   border-color: var(--accent);
   color: var(--accent);
 }

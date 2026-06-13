@@ -22,6 +22,9 @@ export async function apiRequest(endpoint, options = {}) {
     throw new Error('Session expired. Please log in again.');
   }
 
+  // 204 No Content has no body — return null instead of trying to parse JSON
+  if (response.status === 204) return null;
+
   const data = await response.json();
 
   if (!response.ok) {
@@ -53,7 +56,7 @@ export const Auth = {
 
   updateProfile(profileData) {
     return apiRequest('/users/me', {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(profileData),
     });
   },
@@ -97,6 +100,21 @@ export const Parks = {
 
   deletePark(parkId) {
     return apiRequest(`/parks/${parkId}`, { method: 'DELETE' });
+  },
+};
+
+//User profile & favorites /users/me/...
+export const User = {
+  getProfile() {
+    return apiRequest('/users/me', { method: 'GET' });
+  },
+
+  getFavorites() {
+    return apiRequest('/users/me/favorites', { method: 'GET' });
+  },
+
+  removeFavorite(parkId) {
+    return apiRequest(`/users/me/favorites/${parkId}`, { method: 'DELETE' });
   },
 };
 
