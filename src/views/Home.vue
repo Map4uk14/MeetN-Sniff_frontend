@@ -205,4 +205,46 @@ function onParkSelected(parkId) {
   border-color: var(--accent);
   background: var(--accent-bg);
 }
+
+/* ── Mobile layout ──────────────────────────── */
+
+@media (max-width: 768px) {
+  .home-layout {
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+  }
+
+  .parks-col {
+    flex: none;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .park-list {
+    max-height: 32vh;
+  }
+
+  .tag-filter {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.5rem;
+  }
+
+  .map-col {
+    flex: none;
+  }
+
+  .map-col :deep(.map-container) {
+    height: 45vh;
+    border-radius: 0;
+  }
+
+  .details-col {
+    flex: none;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    overflow-y: visible;
+  }
+}
 </style>

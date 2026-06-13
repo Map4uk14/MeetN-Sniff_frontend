@@ -111,4 +111,10 @@ function logout() {
   border-color: var(--accent);
   color: var(--accent);
 }
+
+@media (max-width: 480px) {
+  .username {
+    display: none;
+  }
+}
 </style>
