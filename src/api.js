@@ -81,6 +81,13 @@ export const Parks = {
     return apiRequest(`/parks/${parkId}/reviews`, { method: 'GET' });
   },
 
+  createReview(parkId, data) {
+    return apiRequest(`/parks/${parkId}/reviews`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
   updatePark(parkId, updatedParkData) {
     return apiRequest(`/parks/${parkId}`, {
       method: 'PUT',
@@ -90,5 +97,12 @@ export const Parks = {
 
   deletePark(parkId) {
     return apiRequest(`/parks/${parkId}`, { method: 'DELETE' });
+  },
+};
+
+//Review requests /reviews/...
+export const Reviews = {
+  delete(reviewId) {
+    return apiRequest(`/reviews/${reviewId}`, { method: 'DELETE' });
   },
 };

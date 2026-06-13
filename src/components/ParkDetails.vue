@@ -1,6 +1,6 @@
 <script setup>
-import { ref, watch } from 'vue'
-import { Parks } from '../api'
+import { ref, computed, watch } from 'vue'
+import { Parks, Reviews } from '../api'
 
 const props = defineProps({
   parkId: { type: String, required: true }
@@ -10,6 +10,45 @@ const parkData = ref(null)
 const weatherData = ref(null)
 const reviews = ref([])
 const loading = ref(false)
+
+const currentUser = computed(() => {
+  const raw = localStorage.getItem('user')
+  return raw ? JSON.parse(raw) : null
+})
+
+//Checking if the current user has already reviewed the park
+const hasReviewed = computed(() =>
+  reviews.value.some(r => r.user?.id === currentUser.value?.id) 
+)
+
+// Review form state
+const form = ref({ rating: 5, title: '', body: '' })
+const formError = ref(null)
+const formLoading = ref(false)
+
+async function submitReview() {
+  formError.value = null
+  formLoading.value = true
+  try {
+    const result = await Parks.createReview(props.parkId, form.value)
+    reviews.value.unshift(result.review)
+    form.value = { rating: 5, title: '', body: '' }
+  } catch (err) {
+    formError.value = err.message
+  } finally {
+    formLoading.value = false
+  }
+}
+
+async function deleteReview(reviewId) {
+  if (!confirm('Delete your review?')) return
+  try {
+    await Reviews.delete(reviewId)
+    reviews.value = reviews.value.filter(r => r.id !== reviewId)
+  } catch (err) {
+    console.error('Failed to delete review:', err.message)
+  }
+}
 
 watch(() => props.parkId, async (newId) => {
   if (!newId) return
@@ -78,9 +117,37 @@ function stars(rating) {
               {{ review.user.displayName || review.user.username }}
               <span v-if="review.user.dog?.name" class="review-dog">& {{ review.user.dog.name }}</span>
             </span>
+            <button
+              v-if="review.user?.id === currentUser?.id"
+              class="delete-review-btn"
+              @click="deleteReview(review.id)"
+            >Delete</button>
           </div>
           <p v-if="review.title" class="review-title">{{ review.title }}</p>
           <p v-if="review.body" class="review-body">{{ review.body }}</p>
+        </div>
+
+        <!-- Write a review -->
+        <div v-if="!hasReviewed" class="review-form">
+          <h5 class="review-form-heading">Write a review</h5>
+          <div v-if="formError" class="form-error">{{ formError }}</div>
+          <div class="form-field">
+            <label>Rating</label>
+            <select v-model.number="form.rating">
+              <option v-for="n in 5" :key="n" :value="n">{{ stars(n) }}</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Title</label>
+            <input v-model="form.title" type="text" placeholder="One-line summary" />
+          </div>
+          <div class="form-field">
+            <label>Review</label>
+            <textarea v-model="form.body" rows="3" placeholder="Share your experience…" />
+          </div>
+          <button class="submit-review-btn" :disabled="formLoading" @click="submitReview">
+            {{ formLoading ? 'Submitting…' : 'Submit review' }}
+          </button>
         </div>
       </div>
 
@@ -208,5 +275,96 @@ function stars(rating) {
   font-size: 0.825rem;
   color: var(--text);
   line-height: 1.45;
+}
+
+.delete-review-btn {
+  margin-left: auto;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.delete-review-btn:hover {
+  border-color: #f87171;
+  color: #f87171;
+}
+
+/* ── Write a review form ────────────────────── */
+
+.review-form {
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--code-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.review-form-heading {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.form-error {
+  font-size: 0.8rem;
+  color: #f87171;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.form-field label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+  font-size: 0.85rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.submit-review-btn {
+  padding: 0.5rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.submit-review-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 </style>
