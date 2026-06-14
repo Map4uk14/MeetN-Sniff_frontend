@@ -94,6 +94,7 @@ async function deleteAccount() {
 
 <template>
   <div class="profile-page">
+    <RouterLink to="/" class="back-btn">← Back to parks</RouterLink>
     <div v-if="loading" class="loading-text">Loading profile…</div>
 
     <div v-else class="profile-content">
@@ -184,6 +185,19 @@ async function deleteAccount() {
   max-width: 640px;
   margin: 0 auto;
   padding: 2rem 1rem;
+}
+
+.back-btn {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  font-size: 0.875rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.back-btn:hover {
+  color: var(--accent);
 }
 
 .loading-text {
