@@ -61,6 +61,10 @@ export const Auth = {
     });
   },
 
+  logout() {
+    return apiRequest('/auth/logout', { method: 'POST' });
+  },
+
   deleteAccount() {
     return apiRequest('/users/me', { method: 'DELETE' });
   },

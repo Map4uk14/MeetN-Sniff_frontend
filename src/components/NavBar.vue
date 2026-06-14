@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTheme } from '../composables/useTheme'
+import { Auth } from '../api'
 
 const router = useRouter()
 const { isDark, toggle } = useTheme()
@@ -11,10 +12,14 @@ const user = computed(() => {
   return raw ? JSON.parse(raw) : null
 })
 
-function logout() {
-  localStorage.removeItem('token')
-  localStorage.removeItem('user')
-  router.push('/login')
+async function logout() {
+  try {
+    await Auth.logout()
+  } finally {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    router.push('/login')
+  }
 }
 </script>
 
