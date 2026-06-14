@@ -15,20 +15,21 @@ export async function apiRequest(endpoint, options = {}) {
 
   const response = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
 
-  // Expired or missing token — redirect to login globally
-  if (response.status === 401) {
+  // 204 No Content has no body — return null instead of trying to parse JSON
+  if (response.status === 204) return null;
+
+  const data = await response.json().catch(() => null);
+
+  // A 401 during login means invalid credentials, not an expired session.
+  if (response.status === 401 && endpoint !== '/auth/login') {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     window.location.href = '/login';
     throw new Error('Session expired. Please log in again.');
   }
 
-  // 204 No Content has no body — return null instead of trying to parse JSON
-  if (response.status === 204) return null;
-
-  const data = await response.json();
-
   if (!response.ok) {
-    throw new Error(data.message || `Request failed with status ${response.status}`);
+    throw new Error(data?.error?.message || data?.message || `Request failed with status ${response.status}`);
   }
 
   return data;
