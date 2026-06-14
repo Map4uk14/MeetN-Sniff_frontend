@@ -1,6 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Auth, User } from '../api'
+
+const router = useRouter()
 
 const userData = ref(null)
 const favorites = ref([])
@@ -68,6 +71,24 @@ async function saveProfile() {
 async function removeFavorite(parkId) {
   await User.removeFavorite(parkId)
   favorites.value = favorites.value.filter(p => p.id !== parkId)
+}
+
+const deleteError = ref(null)
+const deleting = ref(false)
+
+async function deleteAccount() {
+  if (!confirm('Delete your account? This will permanently remove your parks, reviews, and profile. This cannot be undone.')) return
+  deleteError.value = null
+  deleting.value = true
+  try {
+    await Auth.deleteAccount()
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    router.push('/login')
+  } catch (err) {
+    deleteError.value = err.message
+    deleting.value = false
+  }
 }
 </script>
 
@@ -142,6 +163,16 @@ async function removeFavorite(parkId) {
             <button class="remove-btn" @click="removeFavorite(park.id)">Remove</button>
           </li>
         </ul>
+      </section>
+
+      <!-- Danger zone -->
+      <section class="profile-card danger-card">
+        <h2 class="section-title danger-title">Danger zone</h2>
+        <p class="danger-description">Permanently deletes your account, all parks you created, and all your reviews. This cannot be undone.</p>
+        <div v-if="deleteError" class="delete-error">{{ deleteError }}</div>
+        <button class="delete-btn" :disabled="deleting" @click="deleteAccount">
+          {{ deleting ? 'Deleting…' : 'Delete account' }}
+        </button>
       </section>
 
     </div>
@@ -301,5 +332,50 @@ async function removeFavorite(parkId) {
 .remove-btn:hover {
   border-color: #f87171;
   color: #f87171;
+}
+
+/* ── Danger zone ─────────────────────────────── */
+
+.danger-card {
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
+.danger-title {
+  color: #f87171;
+}
+
+.danger-description {
+  font-size: 0.875rem;
+  color: var(--text);
+  margin: 0 0 1rem;
+  line-height: 1.5;
+}
+
+.delete-error {
+  font-size: 0.8rem;
+  color: #f87171;
+  margin-bottom: 0.75rem;
+}
+
+.delete-btn {
+  padding: 0.6rem 1.25rem;
+  background: transparent;
+  color: #f87171;
+  border: 1px solid #f87171;
+  border-radius: 7px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.delete-btn:hover {
+  background: #f87171;
+  color: #fff;
+}
+
+.delete-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 </style>
